@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+
+<script>
+    var ScreenHeight = screen.availHeight
+    var ScreenWidth = screen.availWidth
+    console.log("Available Width on browser : " + ScreenWidth + "px")
+    console.log("Available Height on browser : " + ScreenHeight + "px")
+</script>
+
+<head>
+    <style>
+        html {
+            overflow: scroll;
+            overflow-x: hidden;
+            overflow-y: hidden;
+        }
+
+        #div {
+            height: 100vh;
+            width: 100vw;
+        }
+
+        #map {
+            height: 100vh;
+            width: 100vw;
+        }
+
+        #map::-webkit-scrollbar {
+            width: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="map"></div>
+    <script>
+
+        function CenterControl(controlDiv, map) {
+            // Set CSS for the control border.
+            const controlUI = document.createElement("div");
+            controlUI.style.backgroundColor = "#fff";
+            controlUI.style.border = "2px solid #fff";
+            controlUI.style.borderRadius = "3px";
+            controlUI.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
+            controlUI.style.cursor = "pointer";
+            controlUI.style.marginTop = "8px";
+            controlUI.style.marginBottom = "22px";
+            controlUI.style.textAlign = "center";
+            controlUI.title = "Click to recenter the map";
+            controlDiv.appendChild(controlUI);
+            // Set CSS for the control interior.
+            const controlText = document.createElement("div");
+            controlText.style.color = "rgb(25,25,25)";
+            controlText.style.fontFamily = "Roboto,Arial,sans-serif";
+            controlText.style.fontSize = "16px";
+            controlText.style.lineHeight = "38px";
+            controlText.style.paddingLeft = "5px";
+            controlText.style.paddingRight = "5px";
+            controlText.innerHTML = "Find me";
+            controlUI.appendChild(controlText);
+            // Setup the click event listeners: simply set the map to Chicago.
+            controlUI.addEventListener("click", () => {
+                findUser()
+            });
+        }
+
+        function initMap() {
+
+            var options = {
+                zoom: 15,
+                center: { lat: 40.748817, lng: -73.985428 },
+                mapTypeId: google.maps.MapTypeId.ROADMAP,
+                disableDefaultUI: true,
+                tilt: 0,
+                mapTypeControl: true,
+                mapTypeControlOptions: {
+                    style: google.maps.MapTypeControlStyle.DROPDOWN_MENU
+                }
+            }
+
+            map = new google.maps.Map(document.getElementById("map"), options);
+
+            const centerControlDiv = document.createElement("div");
+            CenterControl(centerControlDiv, map);
+            map.controls[google.maps.ControlPosition.TOP_CENTER].push(centerControlDiv);
+        }
+
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBFlUjsMtfgGuDzy6sAaPWRtC6mhZyKGuc&callback=initMap"
+        async></script>
+
+    <script>
+        function findUser() {
+            function success(position) {
+                const pos = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                };
+                console.log(pos);
+                map.setCenter(pos);
+                map.setZoom(17);
+
+                usermarker = new google.maps.Marker({
+                    position: pos,
+                    map: map,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 8,
+                        fillColor: "#940101",
+                        fillOpacity: 0.75,
+                        strokeWeight: 0,
+                        rotation: 0,
+                    },
+                    animation: google.maps.Animation.DROP,
+                    title: "This is you!"
+                })
+                usermarkerinfowindow = new google.maps.InfoWindow();
+                usermarker.addListener("click", () => {
+                    usermarkerinfowindow.close();
+                    usermarkerinfowindow.setContent(usermarker.getTitle());
+                    usermarkerinfowindow.open(usermarker.getMap(), usermarker);
+                })
+            }
+            function error() {
+                alert("Location services incompatible with browser or refused by user. Lat: " + position.coords.latitude + " Lng: " + position.coords.longitude);
+            }
+            watcher = navigator.geolocation.watchPosition(success, error, {
+                enableHighAccuracy: true
+            })
+            console.log(watcher)
+        }
+    </script>
+
+</body>
+
+</html>
